@@ -122,7 +122,7 @@ func RenderGrid(days []storage.DayTotal, today time.Time, width int) (string, in
 	b.WriteString("\n")
 
 	for r := 0; r < gridRows; r++ {
-		b.WriteString(theme.Muted.Render(padOrTrunc(wdLabels[r], 2)) + " ")
+		b.WriteString(theme.MutedText.Render(padOrTrunc(wdLabels[r], 2)) + " ")
 		for wi := range weeks {
 			var cell string
 			if !weeks[wi].has[r] {
@@ -148,11 +148,11 @@ func RenderGrid(days []storage.DayTotal, today time.Time, width int) (string, in
 
 	// Legend.
 	b.WriteString("   ")
-	b.WriteString(theme.Muted.Render("меньше "))
+	b.WriteString(theme.MutedText.Render("меньше "))
 	for l := 0; l <= 4; l++ {
 		b.WriteString(lipgloss.NewStyle().Foreground(theme.Heat[l]).Render(cellChar))
 	}
-	b.WriteString(theme.Muted.Render(" больше"))
+	b.WriteString(theme.MutedText.Render(" больше"))
 	lines := strings.Count(b.String(), "\n")
 	return b.String(), lines
 }
@@ -181,9 +181,9 @@ func ProgressBar(frac float64, width int, label string) string {
 		lipgloss.NewStyle().Foreground(theme.GridEmpty).Render(strings.Repeat("░", width-filled))
 	pct := fmt.Sprintf("%3.0f%%", frac*100)
 	if label != "" {
-		return bar + "  " + theme.Muted.Render(label+" ") + theme.Text.Render(pct)
+		return bar + "  " + theme.MutedText.Render(label+" ") + theme.TextStyle.Render(pct)
 	}
-	return bar + "  " + theme.Text.Render(pct)
+	return bar + "  " + theme.TextStyle.Render(pct)
 }
 
 // ---------------------------------------------------------------------------

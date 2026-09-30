@@ -276,7 +276,7 @@ func (m Model) Summary() string {
 // ---------------------------------------------------------------------------
 
 func (m Model) View() string {
-	w := clampI(m.width-8, 44, 96)
+	_ = clampI(m.width-8, 44, 96)
 	head := lipgloss.JoinHorizontal(lipgloss.Center,
 		theme.Brand.Render(" ETrack "),
 		"  ", theme.Title.Render("Журнал занятий"),
@@ -288,7 +288,7 @@ func (m Model) View() string {
 	var lb strings.Builder
 	lb.WriteString(theme.StatLabel.Render("ПРЕДМЕТ · ПЛАН НА СЕГОДНЯ") + "\n")
 	if len(m.subjects) == 0 {
-		lb.WriteString(theme.Faint.Render("список пуст"))
+		lb.WriteString(theme.FaintText.Render("список пуст"))
 	}
 	for i, s := range m.subjects {
 		pl := m.planned[s.Name]
@@ -316,7 +316,7 @@ func (m Model) View() string {
 	bar := hourDial(m.hours, maxF(m.planned[name], 8))
 	eb.WriteString(label(m.focus == fieldHours, "часы  ") +
 		theme.StatValue.Render(fmt.Sprintf("%4.1f ч", m.hours)) + "  " + bar + "\n")
-	eb.WriteString(theme.Faint.Render("↑/↓ или −/+ шаг 0.5 ч · цифры 1–9 — быстро") + "\n\n")
+	eb.WriteString(theme.FaintText.Render("↑/↓ или −/+ шаг 0.5 ч · цифры 1–9 — быстро") + "\n\n")
 
 	eb.WriteString(label(m.focus == fieldNote, "заметка ") + m.note.View() + "\n\n")
 	if m.busy {
@@ -359,7 +359,7 @@ func label(active bool, s string) string {
 	if active {
 		return lipgloss.NewStyle().Bold(true).Foreground(theme.Accent).Render("▶ " + s)
 	}
-	return theme.Muted.Render("   " + s)
+	return theme.MutedText.Render("   " + s)
 }
 
 func value(s string) string {

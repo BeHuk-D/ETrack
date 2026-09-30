@@ -331,7 +331,7 @@ func Generate(p Params) *Result {
 	}
 
 	// Pass 2: enforce the global daily cap by proportional scaling.
-	for key, m := range raw {
+	for _, m := range raw {
 		var sum float64
 		for _, h := range m {
 			sum += h

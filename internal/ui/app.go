@@ -152,7 +152,7 @@ func (m *Model) onOnboardingDone() {
 // ---------------------------------------------------------------------------
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(m.spinner.Init(), m.onb.Init(), tickEvery())
+	return tea.Batch(m.onb.Init(), tickEvery())
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -196,16 +196,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Global keys first.
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c":
+			return m, tea.Quit
+		case "q":
+			// never quit from modal states with bare q
 			if m.feedbackActive || m.screen == ScreenOnboarding {
-				// never quit from modal states with bare q
-				if msg.String() == "ctrl+c" {
-					return m, tea.Quit
-				}
 				break
 			}
-			return m, tea.Quit
-		case "ctrl+c":
 			return m, tea.Quit
 		}
 		if m.feedbackActive {

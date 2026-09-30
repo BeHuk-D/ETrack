@@ -29,6 +29,14 @@ var Heat = []lipgloss.AdaptiveColor{
 	{Light: "#0A8043", Dark: "#39D353"},
 }
 
+// Text-style helpers built from the adaptive palette (AdaptiveColor itself
+// has no Render method — screens use these for muted/faint inline text).
+var (
+	MutedText = lipgloss.NewStyle().Foreground(Muted)
+	FaintText = lipgloss.NewStyle().Foreground(Faint)
+	TextStyle = lipgloss.NewStyle().Foreground(Text)
+)
+
 var (
 	Title = lipgloss.NewStyle().
 		Bold(true).
@@ -73,7 +81,7 @@ var (
 	StepActive = lipgloss.NewStyle().
 			Bold(true).
 			Foreground(Text).
-			Background(lipgloss.AdaptiveColor{Light: "#DDF4FF", Dark: "#1F6FEB33"}).
+			Background(lipgloss.AdaptiveColor{Light: "#DDF4FF", Dark: "#1F6FEB"}).
 			Padding(0, 1)
 
 	StepDone = lipgloss.NewStyle().Foreground(Green).Padding(0, 1)
