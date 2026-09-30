@@ -164,12 +164,38 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 func (m Model) handleKey(km tea.KeyMsg, full tea.Msg) (Model, tea.Cmd) {
 	key := km.String()
 
+	// Enter is a structural action in the row-editor steps: it commits and
+	// validates ALL rows and advances the wizard. It must be handled here,
+	// BEFORE pass-through to the focused text input — otherwise the input
+	// swallows the key (textinput has no default Enter binding) and nothing
+	// happens, which was the reported bug on the per-subject scores step.
+	if key == "enter" && (m.step == stepPerSubjectScores || m.step == stepExamDates) {
+		m.commitRowValues()
+		if m.step == stepPerSubjectScores {
+			return m.tryAdvanceScores()
+		}
+		return m.tryAdvanceDates()
+	}
+
 	// While typing into any text field, only that field consumes keys —
 	// except Esc which blurs back to navigation mode.
 	if m.typing() {
-		if key == "esc" {
+		switch key {
+		case "esc":
 			m.blurAll()
 			return m, nil
+		case "tab", "shift+tab":
+			// Let students jump between rows/fields without Esc first.
+			m.commitRowValues()
+			if m.step == stepPerSubjectScores || m.step == stepExamDates {
+				if key == "shift+tab" {
+					m.moveRow(-1)
+				} else {
+					m.moveRow(+1)
+				}
+				return m, nil
+			}
+			return m.passThrough(full)
 		}
 		return m.passThrough(full)
 	}
@@ -403,16 +429,29 @@ func (m *Model) removeFocusedSubject() {
 // Row editors
 // ---------------------------------------------------------------------------
 
+// suggestScore proposes a sensible default target for an empty score field:
+// the subject's adjusted share of a typical aggregate goal (avg 85 per
+// subject × probability-adjust factor, clamped to [20,100]).
+func suggestScore(diff float64) int {
+	v := 85 * schedule.AdjustFactorForWeight(diff)
+	r := int(v + 0.5)
+	return clampI(r, schedule.MinPlausibleScore, schedule.MaxScore)
+}
+
 func (m *Model) syncRowInputs() {
 	m.scoreInputs = make([]textinput.Model, len(m.subjects))
 	m.dateInputs = make([]textinput.Model, len(m.subjects))
 	for i, s := range m.subjects {
 		si := textinput.New()
-		si.Placeholder = "балл 20–100"
+		si.Placeholder = fmt.Sprintf("балл 20–100 (напр. %d)", suggestScore(s.diff))
 		si.CharLimit = 3
 		si.Width = 10
 		if s.score > 0 {
 			si.SetValue(strconv.Itoa(s.score))
+		} else {
+			// Pre-fill so Enter always has something valid to commit;
+			// the user can freely overwrite it.
+			si.SetValue(strconv.Itoa(suggestScore(s.diff)))
 		}
 		m.scoreInputs[i] = si
 
@@ -427,11 +466,31 @@ func (m *Model) syncRowInputs() {
 	m.focusRow()
 }
 
+// commitRowValues copies the current text of every row input into the draft
+// subjects (best-effort; invalid values are left untouched). This guarantees
+// that typed-but-uncommitted data is never lost when the user navigates with
+// arrows/tab or presses enter.
+func (m *Model) commitRowValues() {
+	for i := range m.subjects {
+		if i < len(m.scoreInputs) {
+			if n, err := strconv.Atoi(strings.TrimSpace(m.scoreInputs[i].Value())); err == nil && n > 0 {
+				m.subjects[i].score = n
+			}
+		}
+		if i < len(m.dateInputs) {
+			if d, err := time.Parse("2006-01-02", strings.TrimSpace(m.dateInputs[i].Value())); err == nil {
+				m.subjects[i].examDate = d
+			}
+		}
+	}
+}
+
 func (m *Model) moveRow(d int) {
 	n := len(m.subjects)
 	if n == 0 {
 		return
 	}
+	m.commitRowValues()
 	m.rowFocus = (m.rowFocus + d + n) % n
 	m.focusRow()
 }
