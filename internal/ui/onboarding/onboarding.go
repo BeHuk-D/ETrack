@@ -341,7 +341,7 @@ func (m Model) updateSubjects(key string, full tea.Msg) (Model, tea.Cmd) {
 	case "c":
 		m.inCustom = true
 		m.custom.Focus()
-		return m, m.custom.Cursor.Activate()
+		return m, m.custom.Cursor.BlinkCmd()
 	case "right", "l", "tab", "enter":
 		if len(m.subjects) < 2 {
 			m.warning = "Выбери минимум 2 предмета (пробел — добавить)"
@@ -721,9 +721,9 @@ func (m Model) welcomeBody(w int) string {
 	lines := []string{
 		lipgloss.NewStyle().Bold(true).Foreground(theme.Text).Render("Тренажёр подготовки к ЕГЭ"),
 		"",
-		theme.Muted.Render("За 4 коротких шага ETrack спросит цели по баллам, предметы,"),
-		theme.Muted.Render("даты экзаменов и привычки — и построит умное расписание,"),
-		theme.Muted.Render("которое само перераспределяет часы, если ты отстаёшь."),
+		theme.MutedText.Render("За 4 коротких шага ETrack спросит цели по баллам, предметы,"),
+		theme.MutedText.Render("даты экзаменов и привычки — и построит умное расписание,"),
+		theme.MutedText.Render("которое само перераспределяет часы, если ты отстаёшь."),
 		"",
 		theme.Subtitle.Render("Нажми любую клавишу, чтобы начать →"),
 	}
@@ -745,7 +745,7 @@ func (m Model) targetModeBody() string {
 		}
 		lines = append(lines, st.Render(radio+" "+o))
 	}
-	lines = append(lines, "", theme.Muted.Render("↑/↓ или 1/2 — выбор · enter — далее"))
+	lines = append(lines, "", theme.MutedText.Render("↑/↓ или 1/2 — выбор · enter — далее"))
 	return joinNL(lines)
 }
 
@@ -760,7 +760,7 @@ type presetItem struct {
 func (m Model) subjectsBody() string {
 	var lines []string
 	lines = append(lines,
-		theme.Muted.Render("пробел — добавить · x — удалить выделенный · c — свой предмет · enter — далее"), "")
+		theme.MutedText.Render("пробел — добавить · x — удалить выделенный · c — свой предмет · enter — далее"), "")
 
 	items := make([]presetItem, len(m.presets))
 	for i, p := range m.presets {
@@ -778,9 +778,9 @@ func (m Model) subjectsBody() string {
 	}
 
 	lines = append(lines, "",
-		theme.Text.Render(fmt.Sprintf("Выбрано (%d/%d):", len(m.subjects), maxSubjects())))
+		theme.TextStyle.Render(fmt.Sprintf("Выбрано (%d/%d):", len(m.subjects), maxSubjects())))
 	if len(m.subjects) == 0 {
-		lines = append(lines, theme.Faint.Render("  пока пусто — отмечай предметы слева пробелом"))
+		lines = append(lines, theme.FaintText.Render("  пока пусто — отмечай предметы слева пробелом"))
 	}
 	for i, s := range m.subjects {
 		mark, st := "  ", theme.StepTodo
@@ -791,7 +791,7 @@ func (m Model) subjectsBody() string {
 	}
 	if m.inCustom {
 		lines = append(lines, "", "Свой предмет: "+m.custom.View(),
-			theme.Faint.Render("enter — добавить · esc — отмена"))
+			theme.FaintText.Render("enter — добавить · esc — отмена"))
 	}
 	return joinNL(lines)
 }
@@ -829,7 +829,7 @@ func (m Model) hasSubject(name string) bool {
 func (m Model) totalBody() string {
 	var lines []string
 	lines = append(lines,
-		theme.Muted.Render("Сколько баллов суммарно нужно набрать?"),
+		theme.MutedText.Render("Сколько баллов суммарно нужно набрать?"),
 		"",
 		"  Суммарный балл: "+m.totalIn.View(),
 		"",
@@ -843,12 +843,12 @@ func (m Model) totalBody() string {
 	}
 	if n, err := strconv.Atoi(strings.TrimSpace(m.totalIn.Value())); err == nil && n >= 100 {
 		scores := schedule.DistributeScores(n, diffs, days)
-		lines = append(lines, theme.Muted.Render("Предварительное распределение (вес = сложность × √дней):"))
+		lines = append(lines, theme.MutedText.Render("Предварительное распределение (вес = сложность × √дней):"))
 		for i, s := range m.subjects {
-			lines = append(lines, theme.Text.Render(fmt.Sprintf("  %-28s %3d баллов", s.name, scores[i])))
+			lines = append(lines, theme.TextStyle.Render(fmt.Sprintf("  %-28s %3d баллов", s.name, scores[i])))
 		}
 	} else {
-		lines = append(lines, theme.Faint.Render("  введи число ≥ 100, чтобы увидеть распределение"))
+		lines = append(lines, theme.FaintText.Render("  введи число ≥ 100, чтобы увидеть распределение"))
 	}
 	lines = append(lines, "", theme.Help.Render("enter — далее · shift+tab — назад"))
 	return joinNL(lines)
@@ -856,7 +856,7 @@ func (m Model) totalBody() string {
 
 func (m Model) scoresBody() string {
 	var lines []string
-	lines = append(lines, theme.Muted.Render("Укажи целевой первичный балл по каждому предмету (20–100)."), "")
+	lines = append(lines, theme.MutedText.Render("Укажи целевой первичный балл по каждому предмету (20–100)."), "")
 	for i, s := range m.subjects {
 		mark, st := "  ", theme.StepTodo
 		if i == m.rowFocus {
@@ -870,7 +870,7 @@ func (m Model) scoresBody() string {
 
 func (m Model) datesBody() string {
 	var lines []string
-	lines = append(lines, theme.Muted.Render("Когда экзамены? Формат даты — ГГГГ-ММ-ДД (ЕГЭ обычно в июне)."), "")
+	lines = append(lines, theme.MutedText.Render("Когда экзамены? Формат даты — ГГГГ-ММ-ДД (ЕГЭ обычно в июне)."), "")
 	for i, s := range m.subjects {
 		mark, st := "  ", theme.StepTodo
 		if i == m.rowFocus {
@@ -884,7 +884,7 @@ func (m Model) datesBody() string {
 
 func (m Model) prefsBody() string {
 	var lines []string
-	lines = append(lines, theme.Muted.Render("Когда учиться? В это окно планировщик ставит основные блоки."), "")
+	lines = append(lines, theme.MutedText.Render("Когда учиться? В это окно планировщик ставит основные блоки."), "")
 	for i, sl := range storage.AllStudySlots {
 		mark, st := "( )", theme.StepTodo
 		if i == m.slotIdx {
@@ -892,7 +892,7 @@ func (m Model) prefsBody() string {
 		}
 		lines = append(lines, st.Render(mark+" "+sl.Label()))
 	}
-	lines = append(lines, "", theme.Muted.Render("Выходные (w — общий переключатель, s — суббота, u — воскресенье):"))
+	lines = append(lines, "", theme.MutedText.Render("Выходные (w — общий переключатель, s — суббота, u — воскресенье):"))
 	lines = append(lines, checkbox("Учиться по выходным", m.weekends),
 		"   "+checkbox("Суббота", m.sat),
 		"   "+checkbox("Воскресенье", m.sun))
@@ -907,18 +907,18 @@ func (m Model) reviewBody() string {
 	}
 	var lines []string
 	lines = append(lines,
-		theme.Muted.Render("Режим целей: ")+theme.Text.Render(mode),
-		theme.Muted.Render("Слот времени: ")+theme.Text.Render(storage.AllStudySlots[m.slotIdx].Label()),
-		theme.Muted.Render("Выходные: ")+theme.Text.Render(fmt.Sprintf("мастер=%v · сб=%v · вс=%v", m.weekends, m.sat, m.sun)),
+		theme.MutedText.Render("Режим целей: ")+theme.TextStyle.Render(mode),
+		theme.MutedText.Render("Слот времени: ")+theme.TextStyle.Render(storage.AllStudySlots[m.slotIdx].Label()),
+		theme.MutedText.Render("Выходные: ")+theme.TextStyle.Render(fmt.Sprintf("мастер=%v · сб=%v · вс=%v", m.weekends, m.sat, m.sun)),
 		"",
-		theme.Text.Render("Предметы:"),
+		theme.TextStyle.Render("Предметы:"),
 	)
 	for _, s := range m.subjects {
 		scoreTxt := "авто"
 		if s.score > 0 {
 			scoreTxt = strconv.Itoa(s.score)
 		}
-		lines = append(lines, theme.Text.Render(fmt.Sprintf("  %-28s %5s б.  экзамен %s  ×%.2f",
+		lines = append(lines, theme.TextStyle.Render(fmt.Sprintf("  %-28s %5s б.  экзамен %s  ×%.2f",
 			s.name, scoreTxt, s.examDate.Format("02.01.2006"), s.diff)))
 	}
 	lines = append(lines, "", theme.Success.Render("enter — сохранить и построить план"))

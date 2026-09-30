@@ -183,7 +183,7 @@ func (m Model) goalPanel(w int) string {
 
 	lines := []string{theme.StatLabel.Render("ЦЕЛЬ НА СЕГОДНЯ")}
 	if totalPlan == 0 {
-		lines = append(lines, "", theme.Faint.Render("на сегодня плана нет — отдых или выходной"))
+		lines = append(lines, "", theme.FaintText.Render("на сегодня плана нет — отдых или выходной"))
 	} else {
 		lines = append(lines,
 			theme.StatValue.Render(fmt.Sprintf("%.2f / %.2f ч", totalLog, totalPlan)),
@@ -195,7 +195,7 @@ func (m Model) goalPanel(w int) string {
 			lg := m.snap.LogToday[n]
 			done := lg+1e-9 >= pl*0.9
 			mark := "○"
-			st := theme.Muted
+			st := theme.MutedText
 			if done {
 				mark = "●"
 				st = theme.Success
@@ -229,7 +229,8 @@ func (m Model) statsPanel(w int) string {
 		cell(daysLeft, "до «"+trunc(examName, 12)+"»"))
 	row2 := lipgloss.JoinHorizontal(lipgloss.Top,
 		cell(fmt.Sprint(orZero(m.snap.Profile == nil, 0, m.snap.Profile.ActiveDays)), "активных дней"),
-		cell(fmt.Sprintf("×%.2f", orZeroF(m.snap.Profile == nil, 1, profileIntensity(m.snap.Profile))), "темп"))
+		cell(fmt.Sprintf("×%.2f", orZeroF(m.snap.Profile == nil, 1, profileIntensity(m.snap.Profile))), "темп"),
+		cell("⏱ "+fbIn, "до чек-ина"))
 	return theme.Panel.Width(w).Render(row1 + "\n\n" + row2)
 }
 
@@ -242,11 +243,11 @@ func (m Model) gridPanel(w int) string {
 func (m Model) subjectsPanel(w int) string {
 	lines := []string{theme.StatLabel.Render("ПРЕДМЕТЫ")}
 	if len(m.snap.Subjects) == 0 {
-		lines = append(lines, theme.Faint.Render(" пока пусто "))
+		lines = append(lines, theme.FaintText.Render(" пока пусто "))
 	}
 	for _, s := range m.snap.Subjects {
 		days := int(s.ExamDate.Sub(startOf(m.now)).Hours() / 24)
-		state := theme.Muted
+		state := theme.MutedText
 		txt := fmt.Sprintf("%-20s %3d б. ×%.2f  %5.1f ч/нед  ", trunc(s.Name, 20), s.TargetScore, s.Difficulty, s.HoursPerWeek)
 		switch {
 		case days <= 7:
@@ -309,7 +310,7 @@ func heatLevel(h float64) int {
 func renderHeatGrid(days []storage.DayTotal, today time.Time, width int) string {
 	const colsMax = 13
 	if len(days) == 0 {
-		return theme.Faint.Render("нет данных")
+		return theme.FaintText.Render("нет данных")
 	}
 	end := startOf(today)
 	start := end.AddDate(0, 0, -(colsMax*7 - 1))
@@ -352,12 +353,12 @@ func renderHeatGrid(days []storage.DayTotal, today time.Time, width int) string 
 				break
 			}
 		}
-		b.WriteString(theme.Muted.Render(lbl))
+		b.WriteString(theme.MutedText.Render(lbl))
 	}
 	b.WriteString("\n")
 
 	for r := 0; r < rows; r++ {
-		b.WriteString(theme.Muted.Render(padStr(wd[r], 2)) + " ")
+		b.WriteString(theme.MutedText.Render(padStr(wd[r], 2)) + " ")
 		for wi := range weeks {
 			if !weeks[wi].has[r] {
 				b.WriteString(lipgloss.NewStyle().Foreground(theme.Faint).Render(cellOff))
@@ -373,13 +374,13 @@ func renderHeatGrid(days []storage.DayTotal, today time.Time, width int) string 
 		}
 		b.WriteString("\n")
 	}
-	b.WriteString("  " + theme.Muted.Render("меньше ") +
+	b.WriteString("  " + theme.MutedText.Render("меньше ") +
 		lipgloss.NewStyle().Foreground(heatColors[0]).Render(cellOn) +
 		lipgloss.NewStyle().Foreground(heatColors[1]).Render(cellOn) +
 		lipgloss.NewStyle().Foreground(heatColors[2]).Render(cellOn) +
 		lipgloss.NewStyle().Foreground(heatColors[3]).Render(cellOn) +
 		lipgloss.NewStyle().Foreground(heatColors[4]).Render(cellOn) +
-		theme.Muted.Render(" больше"))
+		theme.MutedText.Render(" больше"))
 	return b.String()
 }
 
@@ -404,7 +405,7 @@ func uiBar(frac float64, w int) string {
 	}
 	return lipgloss.NewStyle().Foreground(col).Render(strings.Repeat("█", filled)) +
 		lipgloss.NewStyle().Foreground(theme.GridEmpty).Render(strings.Repeat("░", w-filled)) +
-		" " + theme.Text.Render(fmt.Sprintf("%.0f%%", frac*100))
+		" " + theme.TextStyle.Render(fmt.Sprintf("%.0f%%", frac*100))
 }
 
 func startOf(t time.Time) time.Time {
